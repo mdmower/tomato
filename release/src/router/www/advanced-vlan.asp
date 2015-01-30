@@ -97,6 +97,14 @@ switch(nvram['boardtype']) {
     }
   case '0x048e':  // WL-520GU, WL-500G Premium v2
   case '0x0550':  // RT-N53
+    if (nvram['boardrev'] == '0x1200' && nvram['boardnum'] == '2040') { //F9K1102
+      COL_P0N = '0';
+      COL_P1N = '1';
+      COL_P2N = '2';
+      COL_P3N = '3';
+      COL_P4N = '4';
+      break;
+    }
     COL_P0N = '3';
     COL_P1N = '2';
     COL_P2N = '1';
