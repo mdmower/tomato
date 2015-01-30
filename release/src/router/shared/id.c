@@ -88,6 +88,7 @@ WNR2000v2			BCM4716B0             0xe4cd       1         0x1700
 F7D4301 v1			BCM4718               0xd4cf       12345     0x1204
 F7D3301/F7D3302/F7D4302 v1	BCM4718               0xa4cf       12345     0x1102
 F5D8235-4 v3			BCM4718               0xa4cf       12345     0x1100
+F9K1102 v1/v3			BCM5358U              0x0550       2040      0x1200    0x710
 
 WL-550gE			BCM5352E              0x0467       45        0x10      0x0758      hardware_version=WL550gE-01-05-01-00 sdram_init=0x2000
 
@@ -174,6 +175,7 @@ int check_hw_type(void)
 	case 0xf53a:
 	case 0xf53b:
 	case 0x0550: //RT-N10U and RT-N53
+		if (nvram_match("boardrev", "0x1200")) return HW_BCM5358U; //F9K1102v1/v3
 	case 0x054d:
 		return HW_BCM5357;
 	case 0xf52a:
@@ -434,6 +436,12 @@ int get_model(void)
 		break;
 	case 56:
 		if (hw == HW_BCM5350) return MODEL_WTR54GS;
+		break;
+	case 2040:
+		switch (hw) {
+		case HW_BCM5358U:
+			if (nvram_match("boardrev", "0x1200")) return MODEL_F9K1102;
+		}
 		break;
 	}
 

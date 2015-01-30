@@ -169,11 +169,11 @@ ifeq ($(LINKSYS_E1000v2),y)
 	@rm -f image/tomato-E1000v2-v21$(current_BUILD_USB)$(if $(filter $(NVRAM_SIZE),0),,-NVRAM$(NVRAM_SIZE)K)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-$(current_BUILD_DESC).bin
 	@rm -f image/tomato-Cisco-M10v2$(current_BUILD_USB)$(if $(filter $(NVRAM_SIZE),0),,-NVRAM$(NVRAM_SIZE)K)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-$(current_BUILD_DESC).bin
 endif
-ifeq ($(BELKIN),y)
-ifneq ($(NVRAM_SIZE),60)
-	@rm -f image/tomato-F7D????$(current_BUILD_USB)-$(current_TOMATO_VER).$(current_TOMATO_V1)$(mips_rev)$(beta)$(current_TOMATO_V2)-$(current_BUILD_DESC).bin
-	@rm -f image/tomato-F5D8235v3$(current_BUILD_USB)-$(current_TOMATO_VER).$(current_TOMATO_V1)$(mips_rev)$(beta)$(current_TOMATO_V2)-$(current_BUILD_DESC).bin
+ifeq ($(BELKIN_F5D),y)
+	@rm -f image/tomato-$(current_BUILD_USB)-$(current_TOMATO_VER).$(current_TOMATO_V1)$(mips_rev)$(beta)$(current_TOMATO_V2)-F5D8235v3.bin
 endif
+ifeq ($(BELKIN_F7D),y)
+	@rm -f image/tomato-$(current_BUILD_USB)-$(current_TOMATO_VER).$(current_TOMATO_V1)$(mips_rev)$(beta)$(current_TOMATO_V2)-F7D????.bin
 endif
 	@echo "" >>fpkg.log
 	@echo "***********************" `date` "************************" >>fpkg.log
@@ -223,16 +223,19 @@ ifeq ($(LINKSYS_E1200v1),y)
 		-l E120,image/tomato-E1200v1$(current_BUILD_USB)$(if $(filter $(NVRAM_SIZE),0),,-NVRAM$(NVRAM_SIZE)K)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-$(current_BUILD_DESC).bin \
 		| tee -a fpkg.log
 endif
-ifeq ($(BELKIN),y)
-ifneq ($(NVRAM_SIZE),60)
-	# Create Belkin images
+ifeq ($(BELKIN_F5D),y)
+	# Create Belkin F5D8235v3 image
 	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
-		-b 0x20100322,image/tomato-F7D3301$(current_BUILD_USB)-$(current_TOMATO_VER).$(current_TOMATO_V1)$(mips_rev)$(beta)$(current_TOMATO_V2)-$(current_BUILD_DESC).bin \
-		-b 0x20090928,image/tomato-F7D3302$(current_BUILD_USB)-$(current_TOMATO_VER).$(current_TOMATO_V1)$(mips_rev)$(beta)$(current_TOMATO_V2)-$(current_BUILD_DESC).bin \
-		-b 0x20091006,image/tomato-F7D4302$(current_BUILD_USB)-$(current_TOMATO_VER).$(current_TOMATO_V1)$(mips_rev)$(beta)$(current_TOMATO_V2)-$(current_BUILD_DESC).bin \
-		-b 0x00017116,image/tomato-F5D8235v3$(current_BUILD_USB)-$(current_TOMATO_VER).$(current_TOMATO_V1)$(mips_rev)$(beta)$(current_TOMATO_V2)-$(current_BUILD_DESC).bin \
+		-b 0x00017116,image/tomato-$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-F5D8235v3.bin \
 		| tee -a fpkg.log
 endif
+ifeq ($(BELKIN_F7D),y)
+	# Create Belkin F7D3301, F7D3302, F7D4302 images
+	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
+		-b 0x20100322,image/tomato-$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-F7D3301.bin \
+		-b 0x20090928,image/tomato-$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-F7D3302.bin \
+		-b 0x20091006,image/tomato-$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-F7D4302.bin \
+		| tee -a fpkg.log
 endif
 	# Create generic TRX image
 	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
@@ -862,9 +865,6 @@ r2e:
 r2f:
 	@$(MAKE) f MIPS32=r2
 
-r2fb:
-	@$(MAKE) f MIPS32=r2 BELKIN=y
-
 r2fs:
 	@$(MAKE) fs MIPS32=r2
 
@@ -900,6 +900,17 @@ r2v:
 
 r2vs:
 	@$(MAKE) vs MIPS32=r2
+
+# Belkin 8MB
+
+f5d:
+	@$(MAKE) bin MIPS32=r2 NO_JFFS=y NO_CIFS=y NO_ZEBRA=y B=V PPTPD=y OPENVPN=y USB="USB" IPV6SUPP=y NVRAM_64K=y BELKIN_F5D=y
+
+f7d:
+	@$(MAKE) bin MIPS32=r2 NO_JFFS=y NO_CIFS=y NO_ZEBRA=y B=V PPTPD=y OPENVPN=y USB="USB" IPV6SUPP=y NVRAM_SIZE=32 BELKIN_F7D=y
+
+f9k:
+	@$(MAKE) bin MIPS32=r2 NO_JFFS=y NO_CIFS=y NO_ZEBRA=y B=V NFS=y MEDIASRV=y PPTPD=y OPENVPN=y USB="USB" USBAP=y IPV6SUPP=y NVRAM_64K=y BUILD_DESC="F9K1102"
 
 #Linksys E-Series with 60K Nvram Builds
 
@@ -1089,6 +1100,11 @@ ifeq ($(CONFIG_LINUX26),y)
 	@echo "r2u          MIPS Release 2 U build (no USB support plus VPN with extras)"
 	@echo "r2v          MIPS Release 2 V build (VPN with no USB support)"
 	@echo "r2vs         MIPS Release 2 VS build (Small VPN with no USB support)"
+
+	@echo "       Belkin F5D/F7D/F9K Series with 8MB Flash"
+	@echo "f5d          Belkin F5D8235v3 MIPSr2 Mini w/ USB, IPv6, VPN"
+	@echo "f7d          Belkin F7D3301/3302/4302 MIPSr2 Mini w/ USB, IPv6, VPN"
+	@echo "f9k          Belkin F9K1102 (v1/v3) with wl_high module (dualband support)"
 
 	@echo "       Linksys E-Series with 60k Nvram"
 	@echo "n60m         Linksys E-series build (60KB NVRAM, standard plus extras)"

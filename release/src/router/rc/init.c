@@ -308,22 +308,26 @@ static int invalid_mac(const char *mac)
 	return !(i == 12 && s == 5);
 }
 
-static int find_sercom_mac_addr(void)
+static int get_mac_from_mt0(unsigned long address)
 {
 	FILE *fp;
 	unsigned char m[6], s[18];
 
 	sprintf(s, MTD_DEV(%dro), 0);
 	if ((fp = fopen(s, "rb"))) {
-		fseek(fp, 0x1ffa0, SEEK_SET);
+		fseek(fp, address, SEEK_SET);
 		fread(m, sizeof(m), 1, fp);
 		fclose(fp);
 		sprintf(s, "%02X:%02X:%02X:%02X:%02X:%02X",
 			m[0], m[1], m[2], m[3], m[4], m[5]);
-		nvram_set("et0macaddr", s);
-		return !invalid_mac(s);
+		if (!invalid_mac(s)) {
+			nvram_set("et0macaddr", s);
+			return 0;
+		}
+	} else {
+		return -(errno);
 	}
-	return 0;
+	return -EINVAL;
 }
 
 static int find_dir320_mac_addr(void)
@@ -428,6 +432,7 @@ static int init_vlan_ports(void)
 		dirty |= check_nv("vlan2ports", "0 8");
 		break;
 	case MODEL_RTN53:
+	case MODEL_F9K1102:
 		dirty |= check_nv("vlan2ports", "0 1 2 3 5*");
 		dirty |= check_nv("vlan1ports", "4 5");
 		break;
@@ -561,7 +566,7 @@ static void check_bootnv(void)
 		dirty |= check_nv("wl0gpio3", "0");
 	case MODEL_WL1600GL:
 		if (invalid_mac(nvram_get("et0macaddr"))) {
-			dirty |= find_sercom_mac_addr();
+			dirty |= (get_mac_from_mt0(0x1ffa0) == 0);
 		}
 		break;
 	case MODEL_WRT160Nv1:
@@ -597,6 +602,24 @@ static void check_bootnv(void)
 			strcpy(mac, nvram_safe_get("et0macaddr"));
 			inc_mac(mac, 3);
 			dirty |= check_nv("pci/1/1/macaddr", mac);
+		}
+		break;
+	case MODEL_F9K1102:
+		dirty |= check_nv("vlan1hwname", "et0");
+		dirty |= check_nv("vlan2hwname", "et0");
+		dirty |= check_nv("sb/1/ledbh1", "11");
+		dirty |= check_nv("sb/1/ledbh2", "11");
+		if (invalid_mac(nvram_safe_get("et0macaddr"))
+				&& get_mac_from_mt0(0x20023) == 0) {
+			dirty |= 1;
+			strcpy(mac, nvram_safe_get("et0macaddr"));
+			inc_mac(mac, 2);
+			dirty |= check_nv("sb/1/macaddr", mac);
+#ifdef TCONFIG_USBAP
+			inc_mac(mac, 1);
+			dirty |= check_nv("pci/1/1/macaddr", mac);
+			dirty |= check_nv("0:macaddr", mac);
+#endif
 		}
 		break;
 	case MODEL_F7D3301:
@@ -1153,6 +1176,36 @@ static int init_nvram(void)
 			nvram_set("wan_ifnameX", "vlan2");
 			nvram_set("landevs", "vlan1 wl0 wl1");
 			nvram_set("wandevs", "vlan2");
+		}
+		break;
+	case MODEL_F9K1102:
+		mfr = "Belkin";
+		features = SUP_SES | SUP_80211N;
+		name = "N600 DB Wireless N+";
+#ifdef TCONFIG_USB
+		nvram_set("usb_uhci", "-1");
+#endif
+		if (!nvram_match("t_fix1", (char *)name)) {
+			nvram_set("gpio7", "ses_button");
+			nvram_set("reset_gpio", "3");
+			nvram_set("wan_ifnameX", "vlan1");
+			nvram_set("wandevs", "vlan1");
+			nvram_set("wl0_ifname", "eth1");
+#ifdef TCONFIG_USBAP
+			nvram_set("ehciirqt", "3");
+			nvram_set("qtdc_pid", "48407");
+			nvram_set("qtdc_vid", "2652");
+			nvram_set("qtdc0_ep", "4");
+			nvram_set("qtdc0_sz", "5");
+			nvram_set("qtdc1_ep", "18");
+			nvram_set("qtdc1_sz", "10");
+			nvram_set("lan_ifnames", "vlan2 eth1 eth2");
+			nvram_set("landevs", "vlan2 wl0 wl1");
+			nvram_set("wl1_ifname", "eth2");
+#else
+			nvram_set("lan_ifnames", "vlan2 eth1");
+			nvram_set("landevs", "vlan2 wl0");
+#endif
 		}
 		break;
 	case MODEL_E900:
