@@ -115,7 +115,8 @@ switch(nvram['boardtype']) {
       COL_P4N = '0';
       break;
     }
-    if ((nvram['boardrev'] == '0x1446') && (nvram['boardnum'] == '0015')) { //Dir-620 C1
+    if (((nvram['boardrev'] == '0x1446') && (nvram['boardnum'] == '0015')) || //Dir-620 C1
+        ((nvram['boardrev'] == '0x1200') && (nvram['boardnum'] == '2040'))) { //F9K1102
       COL_P0N = '0';
       COL_P1N = '1';
       COL_P2N = '2';
