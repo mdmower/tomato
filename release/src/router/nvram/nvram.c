@@ -214,6 +214,7 @@ static const char *nv_default_value(const defaults_t *t)
 		case MODEL_F7D4301:
 		case MODEL_F7D4302:
 		case MODEL_F5D8235v3:
+		case MODEL_F9K1102:
 			return "1";
 		}
 	}

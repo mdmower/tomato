@@ -355,6 +355,31 @@ out:
 	return 1;
 }
 
+static int get_f9k_mac(void)
+{
+	int j;
+	char s[18];
+	FILE *fp;
+
+	sprintf(s, MTD_DEV(%dro), 0);
+	if ((fp = fopen(s, "rb"))) {
+		fseek(fp, 0x20354, SEEK_SET);
+		fgets(s, 18, fp);
+		fclose(fp);
+		for (j = 0; j < 18; j++) {
+			if (s[j] == '-')
+				s[j] = ':';
+		}
+		if (!invalid_mac(s)) {
+			nvram_set("et0macaddr", s);
+			return 0;
+		}
+	} else {
+		return errno;
+	}
+	return -EINVAL;
+}
+
 static int init_vlan_ports(void)
 {
 	int dirty = 0;
@@ -479,6 +504,7 @@ static int init_vlan_ports(void)
 	case MODEL_E2500:
 	case MODEL_F7D3302:
 	case MODEL_F7D4302:
+	case MODEL_F9K1102:
 	case MODEL_DIR620C1:
 		dirty |= check_nv("vlan1ports", "0 1 2 3 5*");
 		dirty |= check_nv("vlan2ports", "4 5");
@@ -641,6 +667,17 @@ static void check_bootnv(void)
 			strcpy(mac, nvram_safe_get("et0macaddr"));
 			inc_mac(mac, 3);
 			dirty |= check_nv("pci/1/1/macaddr", mac);
+		}
+		break;
+	case MODEL_F9K1102:
+		dirty |= check_nv("vlan1hwname", "et0");
+		dirty |= check_nv("vlan2hwname", "et0");
+		dirty |= check_nv("sb/1/ledbh1", "11");
+		dirty |= check_nv("sb/1/ledbh2", "11");
+		if (invalid_mac(nvram_safe_get("0:macaddr"))) {
+			strcpy(mac, nvram_safe_get("et0macaddr"));
+			inc_mac(mac, 3);
+			dirty |= check_nv("0:macaddr", mac);
 		}
 		break;
 	case MODEL_F7D3301:
@@ -1663,6 +1700,46 @@ static int init_nvram(void)
 			nvram_set("wan_ifnameX", "vlan2");
 			nvram_set("landevs", "vlan1 wl0 wl1");
 			nvram_set("wandevs", "vlan2");
+		}
+		break;
+	case MODEL_F9K1102:
+		mfr = "Belkin";
+		features = SUP_SES | SUP_80211N;
+		name = "N600 DB Wireless N+";
+#ifdef TCONFIG_USB
+		nvram_set("usb_uhci", "-1");
+#endif
+		if (!nvram_match("t_fix1", (char *)name)) {
+			nvram_set("gpio7", "ses_button");
+			nvram_set("reset_gpio", "3");
+			nvram_set("wan_ifnameX", "vlan2");
+			nvram_set("wandevs", "vlan2");
+			strcpy(s, nvram_safe_get("et0macaddr"));
+			if (invalid_mac(s) && get_f9k_mac() == 0) {
+				strcpy(s, nvram_safe_get("et0macaddr"));
+				inc_mac(s, 2);
+				nvram_set("sb/1/macaddr", s);
+#ifdef TCONFIG_USBAP
+				inc_mac(s, 1);
+				nvram_set("pci/1/1/macaddr", s);
+#endif
+			}
+#ifdef TCONFIG_USBAP
+			nvram_set("ehciirqt", "3");
+			nvram_set("qtdc_pid", "48407");
+			nvram_set("qtdc_vid", "2652");
+			nvram_set("qtdc0_ep", "4");
+			nvram_set("qtdc0_sz", "5");
+			nvram_set("qtdc1_ep", "18");
+			nvram_set("qtdc1_sz", "10");
+			nvram_set("lan_ifnames", "vlan1 eth1 eth2");
+			nvram_set("landevs", "vlan1 wl0 wl1");
+			nvram_set("wl0_ifname", "eth1");
+			nvram_set("wl1_ifname", "eth2");
+#else
+			nvram_set("lan_ifnames", "vlan1 eth1");
+			nvram_set("landevs", "vlan1 wl0");
+#endif
 		}
 		break;
 	case MODEL_E900:

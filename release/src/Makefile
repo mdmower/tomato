@@ -1159,6 +1159,9 @@ n60:
 n60init:
 	@$(MAKE) bin MIPS32=r2 B=E BUILD_DESC="TendaN60-init" USB="" NO_JFFS=y NO_CIFS=y NO_HTTPS=y NO_XXTP=y NO_ZEBRA=y NO_SSH=y
 
+f9k:
+	@$(MAKE) bin MIPS32=r2 NO_JFFS=y NO_CIFS=y NO_ZEBRA=y B=V PPTPD=y OPENVPN=y USB="USB" USBAP=y NVRAM_SIZE=64 BUILD_DESC="F9K1102"
+
 # it`s not possible to flash tomato on this router. Maybe in the future.
 #l600n:
 #	@$(MAKE) bin MIPS32=r2 OPENVPN=y BBEXTRAS=y EBTABLES=y NO_LIBOPT=y IPV6SUPP=y B=E BUILD_DESC="L600N" USB="USB" SNMP=y DNSCRYPT=y PPTPD=y TOR=y NOCAT=y USBAP=y
@@ -1321,6 +1324,7 @@ ifeq ($(CONFIG_LINUX26),y)
 	@echo "n64m         Linksys E-series(64k Nvram) build Max"
 	@echo "       Routers with wl_high module"
 	@echo "rtn53        Asus RT-N53 with wl_high module (dualband support)"
+	@echo "f9k          Belkin F9K1102 (v1/v3) with wl_high module (dualband support)"
 	@echo "e2500        Linksys E2500 with wl_high module (dualband support)"
 	@echo "e3200        Linksys E3200/E2500v3 with wl_high module (dualband support) / max 16MB"
 	@echo "n6           Tenda N6 with wl_high module (dualband support)"

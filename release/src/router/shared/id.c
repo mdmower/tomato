@@ -94,6 +94,7 @@ WNR2000v2			BCM4716B0             0xe4cd       1         0x1700
 F7D4301 v1			BCM4718               0xd4cf       12345     0x1204
 F7D3301/F7D3302/F7D4302 v1	BCM4718               0xa4cf       12345     0x1102
 F5D8235-4 v3			BCM4718               0xa4cf       12345     0x1100
+F9K1102 v1/v3			BCM5358U              0x0550       2040      0x1200    0x710
 
 Dir-620C1			BCM5358U              0x0550       0015      0x1446    0x710 //530MHz/8MB/64MB
 Rosewill L600N                  BCM5358U              0x0550	   1015      0x1400    0x710 //500MHz/8MB/64MB/2.4-5GHz/USB
@@ -194,6 +195,7 @@ int check_hw_type(void)
 		if (nvram_match("boardrev", "0x1400")) return HW_BCM5358U; //L600N
 		if (nvram_match("boardrev", "0x1446")) return HW_BCM5358U; //DIR-620C1
 		if (nvram_match("boardrev", "0x1444")) return HW_BCM5357; //Tenda N6
+		if (nvram_match("boardrev", "0x1200")) return HW_BCM5358U; //F9K1102v1/v3
 	case 0x054d:
 	case 0x053d:
 		return HW_BCM5357;
@@ -531,6 +533,12 @@ int get_model(void)
 		switch (hw) {
 		case HW_BCM4706:
 			if (nvram_match("boardrev", "0x1200")) return MODEL_W1800R;
+		}
+		break;
+	case 2040:
+		switch (hw) {
+		case HW_BCM5358U:
+			if (nvram_match("boardrev", "0x1200")) return MODEL_F9K1102;
 		}
 		break;
 	}
