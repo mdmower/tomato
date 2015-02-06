@@ -208,7 +208,7 @@ int buttons_main(int argc, char *argv[])
 		ses_led = LED_AOSS;
 		break;
 	case MODEL_F9K1102:
-		reset_mask = 0; /* Fix me */
+		reset_mask = 1 << 3;
 		ses_mask = 1 << 7;
 		break;
 	case MODEL_E900:
