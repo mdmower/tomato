@@ -250,16 +250,19 @@ ifeq ($(LINKSYS_E1200v1),y)
 		-l E120,image/tomato-E1200v1$(current_BUILD_USB)$(if $(filter $(NVRAM_SIZE),0),,-NVRAM$(NVRAM_SIZE)K)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-$(current_BUILD_DESC).bin \
 		| tee -a fpkg.log
 endif
-ifeq ($(BELKIN),y)
-ifneq ($(NVRAM_SIZE),60)
+ifeq ($(BELKIN_F5D),y)
 	# Create Belkin images
 	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
-		-b 0x20100322,image/tomato-F7D3301$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-$(current_BUILD_DESC).bin \
-		-b 0x20090928,image/tomato-F7D3302$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-$(current_BUILD_DESC).bin \
-		-b 0x20091006,image/tomato-F7D4302$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-$(current_BUILD_DESC).bin \
-		-b 0x00017116,image/tomato-F5D8235v3$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-$(current_BUILD_DESC).bin \
+		-b 0x00017116,image/tomato-$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-F5D8235v3.bin \
 		| tee -a fpkg.log
 endif
+ifeq ($(BELKIN_F7D),y)
+	# Create Belkin images
+	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
+		-b 0x20100322,image/tomato-$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-F7D3301.bin \
+		-b 0x20090928,image/tomato-$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-F7D3302.bin \
+		-b 0x20091006,image/tomato-$(current_BUILD_USB)-$(current_TOMATO_VER).$(V1)$(mips_rev)$(beta)$(V2)-F7D4302.bin \
+		| tee -a fpkg.log
 endif
 	# Create generic TRX image
 	@btools/fpkg -i lzma-loader/loader.gz -i $(LINUXDIR)/arch/mips/brcm-boards/bcm947xx/compressed/vmlinuz -a 1024 -i router/mipsel-uclibc/target.image \
@@ -1029,7 +1032,7 @@ r2o:
 	@$(MAKE) o MIPS32=r2
 
 r2f:
-	@$(MAKE) f MIPS32=r2 BELKIN=y
+	@$(MAKE) f MIPS32=r2
 
 r2i:
 	@$(MAKE) i MIPS32=r2
@@ -1042,6 +1045,14 @@ r2v:
 
 r2m:
 	@$(MAKE) m MIPS32=r2
+
+# Belkin
+
+f5d:
+	@$(MAKE) bin MIPS32=r2 NO_JFFS=y NO_CIFS=y NO_ZEBRA=y B=V PPTPD=y OPENVPN=y USB="USB" IPV6SUPP=y NVRAM_64K=y BELKIN_F5D=y
+
+f7d:
+	@$(MAKE) bin MIPS32=r2 NO_JFFS=y NO_CIFS=y NO_ZEBRA=y B=V PPTPD=y OPENVPN=y USB="USB" IPV6SUPP=y NVRAM_SIZE=32 BELKIN_F7D=y
 
 #Linksys E-series witk 60K NVRAM builds
 n60z:
@@ -1160,7 +1171,7 @@ n60init:
 	@$(MAKE) bin MIPS32=r2 B=E BUILD_DESC="TendaN60-init" USB="" NO_JFFS=y NO_CIFS=y NO_HTTPS=y NO_XXTP=y NO_ZEBRA=y NO_SSH=y
 
 f9k:
-	@$(MAKE) bin MIPS32=r2 NO_JFFS=y NO_CIFS=y NO_ZEBRA=y B=V PPTPD=y OPENVPN=y USB="USB" USBAP=y NVRAM_SIZE=64 BUILD_DESC="F9K1102"
+	@$(MAKE) bin MIPS32=r2 NO_JFFS=y NO_CIFS=y NO_ZEBRA=y B=V PPTPD=y OPENVPN=y USB="USB" USBAP=y IPV6SUPP=y NVRAM_64K=y BUILD_DESC="F9K1102"
 
 # it`s not possible to flash tomato on this router. Maybe in the future.
 #l600n:
