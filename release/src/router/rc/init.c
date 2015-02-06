@@ -1714,6 +1714,7 @@ static int init_nvram(void)
 			nvram_set("reset_gpio", "3");
 			nvram_set("wan_ifnameX", "vlan2");
 			nvram_set("wandevs", "vlan2");
+			nvram_set("wl0_ifname", "eth1");
 			strcpy(s, nvram_safe_get("et0macaddr"));
 			if (invalid_mac(s) && get_f9k_mac() == 0) {
 				strcpy(s, nvram_safe_get("et0macaddr"));
@@ -1734,7 +1735,6 @@ static int init_nvram(void)
 			nvram_set("qtdc1_sz", "10");
 			nvram_set("lan_ifnames", "vlan1 eth1 eth2");
 			nvram_set("landevs", "vlan1 wl0 wl1");
-			nvram_set("wl0_ifname", "eth1");
 			nvram_set("wl1_ifname", "eth2");
 #else
 			nvram_set("lan_ifnames", "vlan1 eth1");
