@@ -158,7 +158,6 @@ void load_image(const char *fname)
 	struct stat st;
 	FILE *f;
 	long rsize;
-	char *p;
 
 	if (trx_final) {
 		fprintf(stderr, "Cannot load another image if an output has already been written.\n");
@@ -183,7 +182,6 @@ void load_image(const char *fname)
 		exit(1);
 	}
 
-	p = (char *)trx + trx->length;
 	if ((f = fopen(fname, "r")) == NULL) {
 		perror(fname);
 		exit(1);
