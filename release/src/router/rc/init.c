@@ -454,6 +454,7 @@ static int init_vlan_ports(void)
 		dirty |= check_nv("wait_time", "5");
 		break;
 	case MODEL_RTN53:
+	case MODEL_F9K1102:
 		dirty |= check_nv("vlan2ports", "0 1 2 3 5*");
 		dirty |= check_nv("vlan1ports", "4 5");
 		break;
@@ -504,7 +505,6 @@ static int init_vlan_ports(void)
 	case MODEL_E2500:
 	case MODEL_F7D3302:
 	case MODEL_F7D4302:
-	case MODEL_F9K1102:
 	case MODEL_DIR620C1:
 		dirty |= check_nv("vlan1ports", "0 1 2 3 5*");
 		dirty |= check_nv("vlan2ports", "4 5");
@@ -1712,8 +1712,8 @@ static int init_nvram(void)
 		if (!nvram_match("t_fix1", (char *)name)) {
 			nvram_set("gpio7", "ses_button");
 			nvram_set("reset_gpio", "3");
-			nvram_set("wan_ifnameX", "vlan2");
-			nvram_set("wandevs", "vlan2");
+			nvram_set("wan_ifnameX", "vlan1");
+			nvram_set("wandevs", "vlan1");
 			nvram_set("wl0_ifname", "eth1");
 			strcpy(s, nvram_safe_get("et0macaddr"));
 			if (invalid_mac(s) && get_f9k_mac() == 0) {
@@ -1733,12 +1733,12 @@ static int init_nvram(void)
 			nvram_set("qtdc0_sz", "5");
 			nvram_set("qtdc1_ep", "18");
 			nvram_set("qtdc1_sz", "10");
-			nvram_set("lan_ifnames", "vlan1 eth1 eth2");
-			nvram_set("landevs", "vlan1 wl0 wl1");
+			nvram_set("lan_ifnames", "vlan2 eth1 eth2");
+			nvram_set("landevs", "vlan2 wl0 wl1");
 			nvram_set("wl1_ifname", "eth2");
 #else
-			nvram_set("lan_ifnames", "vlan1 eth1");
-			nvram_set("landevs", "vlan1 wl0");
+			nvram_set("lan_ifnames", "vlan2 eth1");
+			nvram_set("landevs", "vlan2 wl0");
 #endif
 		}
 		break;
