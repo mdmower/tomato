@@ -674,10 +674,15 @@ static void check_bootnv(void)
 		dirty |= check_nv("vlan2hwname", "et0");
 		dirty |= check_nv("sb/1/ledbh1", "11");
 		dirty |= check_nv("sb/1/ledbh2", "11");
-		if (invalid_mac(nvram_safe_get("0:macaddr"))) {
+		if (invalid_mac(nvram_safe_get("et0macaddr")) && get_f9k_mac() == 0) {
 			strcpy(mac, nvram_safe_get("et0macaddr"));
-			inc_mac(mac, 3);
+			inc_mac(mac, 2);
+			dirty |= check_nv("sb/1/macaddr", mac);
+#ifdef TCONFIG_USBAP
+			inc_mac(mac, 1);
+			dirty |= check_nv("pci/1/1/macaddr", mac);
 			dirty |= check_nv("0:macaddr", mac);
+#endif
 		}
 		break;
 	case MODEL_F7D3301:
@@ -1715,16 +1720,6 @@ static int init_nvram(void)
 			nvram_set("wan_ifnameX", "vlan1");
 			nvram_set("wandevs", "vlan1");
 			nvram_set("wl0_ifname", "eth1");
-			strcpy(s, nvram_safe_get("et0macaddr"));
-			if (invalid_mac(s) && get_f9k_mac() == 0) {
-				strcpy(s, nvram_safe_get("et0macaddr"));
-				inc_mac(s, 2);
-				nvram_set("sb/1/macaddr", s);
-#ifdef TCONFIG_USBAP
-				inc_mac(s, 1);
-				nvram_set("pci/1/1/macaddr", s);
-#endif
-			}
 #ifdef TCONFIG_USBAP
 			nvram_set("ehciirqt", "3");
 			nvram_set("qtdc_pid", "48407");
