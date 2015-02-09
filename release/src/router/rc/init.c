@@ -357,25 +357,44 @@ out:
 
 static int get_f9k_mac(void)
 {
+/*
+ * The MAC is stored in /dev/mtd0 as string "et0macaddr=AB-CD-EF-12-34-56"
+ * but is apparently not at a universal offset. Search for 'et0macaddr=' and
+ * then skip forward two characters and check for a dash (-), not a colon (:),
+ * else we might be picking up the dummy MAC from nvram.
+ */
 	int j;
 	char s[18];
+	unsigned long offset = 0, last_pos = 0;
 	FILE *fp;
 
 	sprintf(s, MTD_DEV(%dro), 0);
 	if ((fp = fopen(s, "rb"))) {
-		fseek(fp, 0x20354, SEEK_SET);
-		fgets(s, 18, fp);
-		fclose(fp);
-		for (j = 0; j < 18; j++) {
-			if (s[j] == '-')
-				s[j] = ':';
+		fseek(fp, 0, SEEK_END);
+		last_pos = ftell(fp) - 18;
+		while (offset <= last_pos) {
+			fseek(fp, offset, SEEK_SET);
+			fgets(s, 18, fp);
+			if (strncmp(s, "et0macaddr=", 11) == 0 && s[13] == '-') {
+				fseek(fp, offset+11, SEEK_SET);
+				fgets(s, 18, fp);
+				break;
+			}
+			offset++;
 		}
-		if (!invalid_mac(s)) {
-			nvram_set("et0macaddr", s);
-			return 0;
+		fclose(fp);
+		if (offset <= last_pos) {
+			for (j = 0; j < 18; j++) {
+				if (s[j] == '-')
+					s[j] = ':';
+			}
+			if (!invalid_mac(s)) {
+				nvram_set("et0macaddr", s);
+				return 0;
+			}
 		}
 	} else {
-		return errno;
+		return -(errno);
 	}
 	return -EINVAL;
 }
