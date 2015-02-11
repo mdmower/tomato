@@ -1171,7 +1171,7 @@ n60init:
 	@$(MAKE) bin MIPS32=r2 B=E BUILD_DESC="TendaN60-init" USB="" NO_JFFS=y NO_CIFS=y NO_HTTPS=y NO_XXTP=y NO_ZEBRA=y NO_SSH=y
 
 f9k:
-	@$(MAKE) bin MIPS32=r2 NO_JFFS=y NO_CIFS=y NO_ZEBRA=y B=V PPTPD=y OPENVPN=y USB="USB" USBAP=y IPV6SUPP=y NVRAM_64K=y BUILD_DESC="F9K1102"
+	@$(MAKE) bin MIPS32=r2 NO_JFFS=y NO_CIFS=y NO_ZEBRA=y B=V NFS=y MEDIASRV=y PPTPD=y OPENVPN=y USB="USB" USBAP=y IPV6SUPP=y NVRAM_64K=y BUILD_DESC="F9K1102"
 
 # it`s not possible to flash tomato on this router. Maybe in the future.
 #l600n:
