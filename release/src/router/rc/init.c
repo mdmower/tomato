@@ -308,22 +308,26 @@ static int invalid_mac(const char *mac)
 	return !(i == 12 && s == 5);
 }
 
-static int find_sercom_mac_addr(void)
+static int get_mac_from_mt0(unsigned long address)
 {
 	FILE *fp;
 	unsigned char m[6], s[18];
 
 	sprintf(s, MTD_DEV(%dro), 0);
 	if ((fp = fopen(s, "rb"))) {
-		fseek(fp, 0x1ffa0, SEEK_SET);
+		fseek(fp, address, SEEK_SET);
 		fread(m, sizeof(m), 1, fp);
 		fclose(fp);
 		sprintf(s, "%02X:%02X:%02X:%02X:%02X:%02X",
 			m[0], m[1], m[2], m[3], m[4], m[5]);
-		nvram_set("et0macaddr", s);
-		return !invalid_mac(s);
+		if (!invalid_mac(s)) {
+			nvram_set("et0macaddr", s);
+			return 0;
+		}
+	} else {
+		return -(errno);
 	}
-	return 0;
+	return -EINVAL;
 }
 
 static int find_dir320_mac_addr(void)
@@ -370,50 +374,6 @@ out:
 		nvram_set("et0macaddr", s);
 	}
 	return 1;
-}
-
-static int get_f9k_mac(void)
-{
-/*
- * The MAC is stored in /dev/mtd0 as string "et0macaddr=AB-CD-EF-12-34-56"
- * but is apparently not at a universal offset. Search for 'et0macaddr=' and
- * then skip forward two characters and check for a dash (-), not a colon (:),
- * else we might be picking up the dummy MAC from nvram.
- */
-	int j;
-	char s[18];
-	unsigned long offset = 0, last_pos = 0;
-	FILE *fp;
-
-	sprintf(s, MTD_DEV(%dro), 0);
-	if ((fp = fopen(s, "rb"))) {
-		fseek(fp, 0, SEEK_END);
-		last_pos = ftell(fp) - 18;
-		while (offset <= last_pos) {
-			fseek(fp, offset, SEEK_SET);
-			fgets(s, 18, fp);
-			if (strncmp(s, "et0macaddr=", 11) == 0 && s[13] == '-') {
-				fseek(fp, offset+11, SEEK_SET);
-				fgets(s, 18, fp);
-				break;
-			}
-			offset++;
-		}
-		fclose(fp);
-		if (offset <= last_pos) {
-			for (j = 0; j < 18; j++) {
-				if (s[j] == '-')
-					s[j] = ':';
-			}
-			if (!invalid_mac(s)) {
-				nvram_set("et0macaddr", s);
-				return 0;
-			}
-		}
-	} else {
-		return -(errno);
-	}
-	return -EINVAL;
 }
 
 static int init_vlan_ports(void)
@@ -659,7 +619,7 @@ static void check_bootnv(void)
 		break;
 	case MODEL_WL1600GL:
 		if (invalid_mac(nvram_get("et0macaddr"))) {
-			dirty |= find_sercom_mac_addr();
+			dirty |= (get_mac_from_mt0(0x1ffa0) == 0);
 		}
 		break;
 	case MODEL_WRT160Nv1:
@@ -710,7 +670,9 @@ static void check_bootnv(void)
 		dirty |= check_nv("vlan2hwname", "et0");
 		dirty |= check_nv("sb/1/ledbh1", "11");
 		dirty |= check_nv("sb/1/ledbh2", "11");
-		if (invalid_mac(nvram_safe_get("et0macaddr")) && get_f9k_mac() == 0) {
+		if (invalid_mac(nvram_safe_get("et0macaddr"))
+				&& get_mac_from_mt0(0x20023) == 0) {
+			dirty |= 1;
 			strcpy(mac, nvram_safe_get("et0macaddr"));
 			inc_mac(mac, 2);
 			dirty |= check_nv("sb/1/macaddr", mac);
