@@ -1111,6 +1111,14 @@ static void filter_input(void)
 		}
 	}
 
+#ifdef TCONFIG_PPTPD
+	//Add for pptp server
+	if (nvram_match("pptpd_enable", "1")) {
+		ipt_write("-A INPUT -p tcp --dport 1723 -j ACCEPT\n");
+		ipt_write("-A INPUT -p 47 -j ACCEPT\n");
+	}
+#endif
+
 	// if logging
 	if (*chain_in_drop == 'l') {
 		ipt_write( "-A INPUT -j %s\n", chain_in_drop);
@@ -1261,14 +1269,6 @@ static void filter_forward(void)
 //		ip46t_write("-A FORWARD -i %s -j %s\n", nvram_safe_get(lanN_ifname), chain_out_accept);
 		}
 	}
-
-#ifdef TCONFIG_PPTPD
-	//Add for pptp server
-	if (nvram_match("pptpd_enable", "1")) {
-		ipt_write("-A INPUT -p tcp --dport 1723 -j ACCEPT\n");
-		ipt_write("-A INPUT -p 47 -j ACCEPT\n");
-	}
-#endif
 
 #ifdef TCONFIG_IPV6
 	// Filter out invalid WAN->WAN connections
